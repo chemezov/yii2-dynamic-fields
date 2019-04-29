@@ -21,10 +21,10 @@ or add
 
 to the require section of your `composer.json` file.
 
-Apply migration
+Apply migrations:
 
 ```
-yii migrate --migrationPath=@chemezov/yii2-dynamic-fields/migrations
+yii migrate --migrationPath=@vendor/chemezov/yii2-dynamic-fields/migrations
 ```
 
 
