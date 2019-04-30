@@ -29,6 +29,11 @@ class DynamicFieldsBehavior extends Behavior
 
     public $tableName = '{{%dynamic_fields}}';
 
+    /**
+     * @var array
+     */
+    private $_values = [];
+
     public function events()
     {
         return [
@@ -37,6 +42,30 @@ class DynamicFieldsBehavior extends Behavior
             ActiveRecord::EVENT_AFTER_UPDATE => 'afterSave',
             ActiveRecord::EVENT_BEFORE_DELETE => 'deleteModelValues',
         ];
+    }
+
+    public function canGetProperty($name, $checkVars = true)
+    {
+        return in_array($name, $this->fields);
+    }
+
+    public function canSetProperty($name, $checkVars = true)
+    {
+        return in_array($name, $this->fields);
+    }
+
+    public function __get($name)
+    {
+        if (array_key_exists($name, $this->_values)) {
+            return $this->_values[$name];
+        }
+    }
+
+    public function __set($name, $value)
+    {
+        if ($this->canSetProperty($name)) {
+            $this->_values[$name] = $value;
+        }
     }
 
     public function afterFind($event)

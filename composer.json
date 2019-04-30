@@ -2,7 +2,7 @@
     "name": "chemezov/yii2-dynamic-fields",
     "description": "Behavior for Yii2 framework to work with custom (dynamic) fields",
     "type": "extension",
-    "keywords": ["yii2","extension"," ActiveRecord"," dynamic fields"," behavior"," custom fields"],
+    "keywords": ["yii2","extension"," ActiveRecord"," dynamic fields"," behavior"," custom fields", "eav"],
     "license": "MIT",
     "authors": [
         {

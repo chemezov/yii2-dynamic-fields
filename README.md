@@ -31,58 +31,106 @@ yii migrate --migrationPath=@vendor/chemezov/yii2-dynamic-fields/migrations
 Usage
 -----
 
-For example you have User model. And you want to store **address** and some other values e.g. **is_client** but don't want to extend your DB table.
-So you can use this behavior. Here example of User model:
-
-## Basic usage
-
 ```php
 use chemezov\yii2_dynamic_fields\DynamicFieldsBehavior;
 
 class User extends \yii\db\ActiveRecord
 {
-    /* custom fields */
-    public $address;
-    public $is_client;
-    
-    public function rules()
-    {
-        return [
-        ...
-            [['address'], 'string', 'max' => 255],
-            [['is_client'], 'default', 'value' => null],
-            [['is_client'], 'boolean'],
-        ];
-    }
-    
     public function behaviors()
     {
         return [
-            'typecast' => [
-                'class' => AttributeTypecastBehavior::class,
-                'attributeTypes' => [
-                    'is_client' => AttributeTypecastBehavior::TYPE_BOOLEAN,
-                ],
-            ],
             'dynamicFields' => [
                 'class' => DynamicFieldsBehavior::class,
-                'fields' => ['address', 'is_client'], // All fields you want to save with your model
+                'fields' => ['my_custom_string_1', 'my_custom_string_2'],
             ],
+        ];
+    }
+        
+    public function rules() {
+        return [
+            [['my_custom_string_1', 'my_custom_string_2'], 'string', 'max' => 255],
+        ];
+    }
+        
+    public function attributeLabels()
+    {
+        return [
+            'my_custom_string_1' => 'My string 1',
+            'my_custom_string_2' => 'My string 2',
         ];
     }
 }
 ```
 
-## Common usage
+Now you can use your custom attributes:
+
+```php
+$model = new User();
+$value = $model->my_custom_string_1; // get value
+$model->my_custom_string_1 = 'some value'; // set value
+$model->save();
+```
+
+Other types
+-----------
+
+If you want to use other types than string you can use ```AttributeTypecastBehavior```. Add ```AttributeTypecastBehavior``` after ```DynamicFieldsBehavior```. **It is important!**
+
 ```php
 use chemezov\yii2_dynamic_fields\DynamicFieldsBehavior;
 
 class User extends \yii\db\ActiveRecord
 {
-    /* custom fields */
-    public $address;
-    public $is_client;
-    
+    public function behaviors()
+    {
+        return [
+            'dynamicFields' => [
+                'class' => DynamicFieldsBehavior::class,
+                'fields' => ['my_boolean_attribute'],
+            ],
+            'typecast' => [
+                'class' => AttributeTypecastBehavior::class,
+                'attributeTypes' => [
+                    'my_boolean_attribute' => AttributeTypecastBehavior::TYPE_BOOLEAN,
+                ],
+                'typecastAfterFind' => true,
+            ],
+        ];
+    }
+        
+    public function rules() {
+        return [
+            [['my_boolean_attribute'], 'default', 'value' => null],
+            [['my_boolean_attribute'], 'boolean'],
+        ];
+    }
+        
+    public function attributeLabels()
+    {
+        return [
+            'my_boolean_attribute' => 'My boolean attribute',
+        ];
+    }
+}
+```
+
+Example
+-------
+
+For example you have User model. And you want to store **address** and some other values e.g. **is_client** but don't want to extend your DB table.
+So you can use this behavior. Here example of User model:
+
+```php
+use chemezov\yii2_dynamic_fields\DynamicFieldsBehavior;
+
+/**
+ * Class User
+ *
+ * @property string $address
+ * @property boolean $is_client
+ */
+class User extends \yii\db\ActiveRecord
+{
     public function rules()
     {
         return [
@@ -96,15 +144,16 @@ class User extends \yii\db\ActiveRecord
     public function behaviors()
     {
         return [
+            'dynamicFields' => [
+                'class' => DynamicFieldsBehavior::class,
+                'fields' => $this->getAdditionalFieldsNames(),
+            ],
             'typecast' => [
                 'class' => AttributeTypecastBehavior::class,
                 'attributeTypes' => [
                     'is_client' => AttributeTypecastBehavior::TYPE_BOOLEAN,
                 ],
-            ],
-            'dynamicFields' => [
-                'class' => DynamicFieldsBehavior::class,
-                'fields' => $this->getAdditionalFieldsNames(),
+                'typecastAfterFind' => true,
             ],
         ];
     }
@@ -134,5 +183,3 @@ class User extends \yii\db\ActiveRecord
     }
 }
 ```
-
-Now is supported string and boolean variables. By using rules and AttributeTypecastBehavior you can configure any type you want.
