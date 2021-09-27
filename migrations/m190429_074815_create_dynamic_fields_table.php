@@ -13,9 +13,9 @@ class m190429_074815_create_dynamic_fields_table extends Migration
     public function safeUp()
     {
         $this->createTable('{{%dynamic_fields}}', [
-            'model' => $this->string()->notNull()->comment('Model name'),
+            'model' => $this->string(150)->notNull()->comment('Model name'),
             'model_id' => $this->integer()->notNull()->comment('Model primary key'),
-            'field' => $this->string()->notNull()->comment('Field name'),
+            'field' => $this->string(50)->notNull()->comment('Field name'),
             'value' => $this->string()->comment('Field value'),
         ]);
 
