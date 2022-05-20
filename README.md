@@ -78,6 +78,7 @@ If you want to use other types than string you can use ```AttributeTypecastBehav
 
 ```php
 use chemezov\yii2_dynamic_fields\DynamicFieldsBehavior;
+use yii\behaviors\AttributeTypecastBehavior;
 
 class User extends \yii\db\ActiveRecord
 {
@@ -122,6 +123,7 @@ So you can use this behavior. Here example of User model:
 
 ```php
 use chemezov\yii2_dynamic_fields\DynamicFieldsBehavior;
+use yii\behaviors\AttributeTypecastBehavior;
 
 /**
  * Class User
@@ -180,6 +182,56 @@ class User extends \yii\db\ActiveRecord
     public function fields()
     {
         return array_merge(parent::fields(), $this->getAdditionalFieldsNames());
+    }
+}
+```
+
+Usage for JsonDynamicFieldsBehavior
+-----------------------------------
+
+Using this behavior is very similar to using it with the `DynamicFieldsBehavior`. This behavior store dynamic fields in separate column of model table in json.
+
+You should create a column in your model table, e.g. `additional_data`, with type `text`, and allow `null` value. Example for migration:
+
+```php
+$this->addColumn('your_table', 'additional_data', $this->text()->null());
+```
+
+```php
+use chemezov\yii2_dynamic_fields\JsonDynamicFieldsBehavior;
+use yii\behaviors\AttributeTypecastBehavior;
+
+class User extends \yii\db\ActiveRecord
+{
+    public function behaviors()
+    {
+        return [
+            'dynamicFields' => [
+                'class' => JsonDynamicFieldsBehavior::class,
+                'fields' => ['my_boolean_attribute'],
+            ],
+            'typecast' => [
+                'class' => AttributeTypecastBehavior::class,
+                'attributeTypes' => [
+                    'my_boolean_attribute' => AttributeTypecastBehavior::TYPE_BOOLEAN,
+                ],
+                'typecastAfterFind' => true,
+            ],
+        ];
+    }
+        
+    public function rules() {
+        return [
+            [['my_boolean_attribute'], 'default', 'value' => null],
+            [['my_boolean_attribute'], 'boolean'],
+        ];
+    }
+        
+    public function attributeLabels()
+    {
+        return [
+            'my_boolean_attribute' => 'My boolean attribute',
+        ];
     }
 }
 ```
