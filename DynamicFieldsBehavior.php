@@ -13,7 +13,13 @@ use yii\db\Query;
 use yii\helpers\ArrayHelper;
 use yii\helpers\StringHelper;
 
-class DynamicFieldsBehavior extends Behavior
+/**
+ * Behavior to store dynamic fields in separate table.
+ *
+ * Class DynamicFieldsBehavior
+ * @package chemezov\yii2_dynamic_fields
+ */
+class DynamicFieldsBehavior extends BaseDynamicFieldsBehavior
 {
     /**
      * You can set custom model class. Default is short name of owner class.
@@ -22,58 +28,29 @@ class DynamicFieldsBehavior extends Behavior
      */
     public $modelName;
 
-    /**
-     * Fields to store and load with your model. Example: ['address', 'is_client'].
-     *
-     * @var string[]
-     */
-    public $fields = [];
-
     public $tableName = '{{%dynamic_fields}}';
 
     /**
-     * @var array
+     * {@inheritdoc}
      */
-    private $_values = [];
-
     public function events()
     {
         return [
-            ActiveRecord::EVENT_AFTER_FIND => 'loadDynamicFieldsValues',
-            ActiveRecord::EVENT_AFTER_INSERT => 'saveDynamicFieldsValues',
-            ActiveRecord::EVENT_AFTER_UPDATE => 'saveDynamicFieldsValues',
-            ActiveRecord::EVENT_BEFORE_DELETE => 'deleteDynamicFieldsValues',
+            ActiveRecord::EVENT_AFTER_FIND => 'loadDynamicFields',
+            ActiveRecord::EVENT_AFTER_INSERT => 'saveDynamicFields',
+            ActiveRecord::EVENT_AFTER_UPDATE => 'saveDynamicFields',
+            ActiveRecord::EVENT_BEFORE_DELETE => 'deleteDynamicFields',
         ];
     }
 
-    public function canGetProperty($name, $checkVars = true)
+    /**
+     * Save fields values in separate table.
+     *
+     * @throws \yii\db\Exception
+     */
+    public function saveDynamicFields(): void
     {
-        return in_array($name, $this->fields);
-    }
-
-    public function canSetProperty($name, $checkVars = true)
-    {
-        return in_array($name, $this->fields);
-    }
-
-    public function __get($name)
-    {
-        if (array_key_exists($name, $this->_values)) {
-            return $this->_values[$name];
-        }
-    }
-
-    public function __set($name, $value)
-    {
-        if ($this->canSetProperty($name)) {
-            $this->_values[$name] = $value;
-        }
-    }
-
-    public function saveDynamicFieldsValues()
-    {
-        /* Save fields values in separate table */
-        $this->deleteDynamicFieldsValues();
+        $this->deleteDynamicFields();
 
         if (!empty($this->fields)) {
             $data = [];
@@ -91,9 +68,11 @@ class DynamicFieldsBehavior extends Behavior
         }
     }
 
-    public function loadDynamicFieldsValues()
+    /**
+     * Load fields values from separate table.
+     */
+    public function loadDynamicFields(): void
     {
-        /* Load fields values */
         if (!empty($this->fields)) {
             $query = (new Query())
                 ->select(['field', 'value'])
@@ -108,7 +87,7 @@ class DynamicFieldsBehavior extends Behavior
         }
     }
 
-    public function deleteDynamicFieldsValues()
+    public function deleteDynamicFields(): void
     {
         Yii::$app->db->createCommand()->delete($this->tableName, ['model' => $this->getModelClass(), 'model_id' => $this->getPrimaryKey()])->execute();
     }
